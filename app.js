@@ -34,5 +34,28 @@ app.post("/register", async (request, response) => {
     await db.run(createNewUser);
     response.status(200);
     response.send("User created successfully");
+  } else {
+    response.status(400);
+    response.send("User already exists");
+  }
+});
+
+app.post("/login", async (request, response) => {
+  const { username, password } = request.body;
+  const userInQuery = `select * from user where username=${username};`;
+  const dbUser = await db.get(userInQuery);
+
+  if (dbUser === undefined) {
+    response.status(400);
+    response.send("Invalid user");
+  } else {
+    const passwordCompare = await bcrypt.hash(password, dbUser.password);
+    if (passwordCompare) {
+      response.status(200);
+      response.send("Login success!");
+    } else {
+      response.status(400);
+      response.send("Invalid password");
+    }
   }
 });

@@ -28,7 +28,7 @@ app.post("/register", async (request, response) => {
   const { username, name, password, gender, location } = request.body;
   const hashedPassword = await bcrypt.hash(password, 10);
   const userCheck = `select * from user where username = ${username}`;
-  const dbUser = await db.get(userCheck);
+  const dbUser = await db.all(userCheck);
   if (dbUser === undefined) {
     const createNewUser = `insert into user username,name,password,gender,location values(${username},${name},${hashedPassword},${gender},${location};`;
     await db.run(createNewUser);
@@ -43,7 +43,7 @@ app.post("/register", async (request, response) => {
 app.post("/login", async (request, response) => {
   const { username, password } = request.body;
   const userInQuery = `select * from user where username=${username};`;
-  const dbUser = await db.get(userInQuery);
+  const dbUser = await db.all(userInQuery);
 
   if (dbUser === undefined) {
     response.status(400);
@@ -67,6 +67,9 @@ app.put("/change-password", async (request, response) => {
   const comparePassword = await bcrypt.compare(oldPassword, dbUser.password);
   if (comparePassword) {
     if (oldPassword.length >= 5) {
+      const password = await bcrypt.hash(newPassword, 10);
+      const updatePassword = `update user set password=${password};`;
+      const dbUser = await db.run(updatePassword);
       response.status(200);
       response.send("Password updated");
     } else {
@@ -78,3 +81,5 @@ app.put("/change-password", async (request, response) => {
     response.send("Invalid current password");
   }
 });
+
+module.exports = app;

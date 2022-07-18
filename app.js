@@ -59,3 +59,22 @@ app.post("/login", async (request, response) => {
     }
   }
 });
+
+app.put("/change-password", async (request, response) => {
+  const { username, oldPassword, newPassword } = request.body;
+  const changePassword = `select * from user where username=${username};`;
+  const dbUser = await db.all(changePassword);
+  const comparePassword = await bcrypt.compare(oldPassword, dbUser.password);
+  if (comparePassword) {
+    if (oldPassword.length >= 5) {
+      response.status(200);
+      response.send("Password updated");
+    } else {
+      response.status(400);
+      response.send("Password is too short");
+    }
+  } else {
+    response.status(400);
+    response.send("Invalid current password");
+  }
+});
